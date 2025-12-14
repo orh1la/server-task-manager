@@ -12,6 +12,11 @@
     .cpu { background: #4caf50; }
     .ram { background: #2196f3; }
     .disk { background: #f44336; }
+    table { width: 100%; margin-top:20px; border-collapse: collapse; color:white;}
+    th, td { padding: 5px; text-align: left; border-bottom:1px solid #555;}
+    th { background:#222;}
+    button { background:#f44336; color:white; border:none; padding:5px 10px; cursor:pointer;}
+    button:hover { background:#d32f2f;}
   </style>
 </head>
 <body>
@@ -28,6 +33,20 @@
 
   <canvas id="cpuChart" style="width:100%;max-width:600px;height:200px;margin-top:30px;"></canvas>
 
+  <h3>Running Applications</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>PID</th>
+        <th>App Name</th>
+        <th>CPU %</th>
+        <th>RAM %</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="plist"></tbody>
+  </table>
+
   <script>
     const cpuFill = document.getElementById('cpu');
     const ramFill = document.getElementById('ram');
@@ -37,7 +56,7 @@
     const cpuData = {labels: [], datasets: [{label: 'CPU %', data: [], borderColor: 'yellow', backgroundColor: 'rgba(255,255,0,0.2)', fill: true} ]};
     const cpuChart = new Chart(ctx, {type:'line', data:cpuData, options:{animation:false, responsive:true, scales:{y:{min:0,max:100}}}});
 
-    setInterval(() => {
+    function loadStatus(){
       fetch('/api/status')
         .then(r => r.json())
         .then(d => {
@@ -51,8 +70,36 @@
           if(cpuData.labels.length>20){cpuData.labels.shift(); cpuData.datasets[0].data.shift();}
           cpuChart.update();
         });
-    }, 2000);
+    }
+
+    function loadProcesses(){
+      fetch('/api/processes')
+        .then(r=>r.json())
+        .then(data=>{
+          const t = document.getElementById('plist');
+          t.innerHTML='';
+          data.forEach(p=>{
+            t.innerHTML += `
+              <tr>
+                <td>${p.pid}</td>
+                <td>${p.name}</td>
+                <td>${p.cpu_percent}</td>
+                <td>${p.memory_percent.toFixed(1)}</td>
+                <td>
+                  <button onclick="kill(${p.pid})">End Task</button>
+                </td>
+              </tr>`;
+          });
+        });
+    }
+
+    function kill(pid){
+      fetch('/api/kill/'+pid,{method:'POST'})
+        .then(()=>loadProcesses());
+    }
+
+    setInterval(loadStatus, 2000);
+    setInterval(loadProcesses, 3000);
   </script>
 </body>
 </html>
-
