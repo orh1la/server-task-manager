@@ -12,6 +12,7 @@
     .cpu { background: #4caf50; }
     .ram { background: #2196f3; }
     .disk { background: #f44336; }
+    .alert { color: yellow; font-weight:bold; }
     table { width: 100%; margin-top:20px; border-collapse: collapse; color:white;}
     th, td { padding: 5px; text-align: left; border-bottom:1px solid #555;}
     th { background:#222;}
@@ -22,10 +23,10 @@
 <body>
   <h2>🖥 Server Task Manager</h2>
 
-  <div>CPU Usage</div>
+  <div>CPU Usage <span id="cpuAlert" class="alert"></span></div>
   <div class="bar"><div class="fill cpu" id="cpu">0%</div></div>
 
-  <div>RAM Usage</div>
+  <div>RAM Usage <span id="ramAlert" class="alert"></span></div>
   <div class="bar"><div class="fill ram" id="ram">0%</div></div>
 
   <div>Disk Usage</div>
@@ -51,6 +52,8 @@
     const cpuFill = document.getElementById('cpu');
     const ramFill = document.getElementById('ram');
     const diskFill = document.getElementById('disk');
+    const cpuAlert = document.getElementById('cpuAlert');
+    const ramAlert = document.getElementById('ramAlert');
 
     const ctx = document.getElementById('cpuChart').getContext('2d');
     const cpuData = {labels: [], datasets: [{label: 'CPU %', data: [], borderColor: 'yellow', backgroundColor: 'rgba(255,255,0,0.2)', fill: true} ]};
@@ -63,6 +66,9 @@
           cpuFill.style.width = d.cpu + '%'; cpuFill.innerText = d.cpu + '%';
           ramFill.style.width = d.ram + '%'; ramFill.innerText = d.ram + '%';
           diskFill.style.width = d.disk + '%'; diskFill.innerText = d.disk + '%';
+
+          cpuAlert.innerText = d.cpu > 80 ? '⚠ High CPU!' : '';
+          ramAlert.innerText = d.ram > 80 ? '⚠ High RAM!' : '';
 
           const now = new Date().toLocaleTimeString();
           cpuData.labels.push(now);
@@ -103,3 +109,4 @@
   </script>
 </body>
 </html>
+
