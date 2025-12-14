@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Server Task Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <h2>🖥 Server Task Manager</h2>
+  <div id="stats">Loading...</div>
+
+  <script>
+    setInterval(() => {
+      fetch("/api/status")
+        .then(r => r.json())
+        .then(d => {
+          document.getElementById("stats").innerHTML =
+            `CPU: ${d.cpu}%<br>
+             RAM: ${d.ram}%<br>
+             Disk: ${d.disk}%`;
+        });
+    }, 3000);
+  </script>
+</body>
+</html>
+
