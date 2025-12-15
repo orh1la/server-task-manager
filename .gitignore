@@ -1,0 +1,4 @@
+# Ignore build, dist and virtual environment
+build/
+dist/
+venv/
