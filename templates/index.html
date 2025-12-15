@@ -1,112 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Server Task Manager</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body { font-family: Arial; background: #1e1e1e; color: #fff; padding: 20px;}
-    h2 { text-align: center; }
-    .bar { margin: 10px 0; height: 25px; background: #333; border-radius: 5px; overflow: hidden;}
-    .fill { height: 100%; width: 0%; text-align: right; padding-right: 5px; color: #fff; font-weight: bold; line-height: 25px;}
-    .cpu { background: #4caf50; }
-    .ram { background: #2196f3; }
-    .disk { background: #f44336; }
-    .alert { color: yellow; font-weight:bold; }
-    table { width: 100%; margin-top:20px; border-collapse: collapse; color:white;}
-    th, td { padding: 5px; text-align: left; border-bottom:1px solid #555;}
-    th { background:#222;}
-    button { background:#f44336; color:white; border:none; padding:5px 10px; cursor:pointer;}
-    button:hover { background:#d32f2f;}
-  </style>
+    <meta charset="UTF-8">
+    <title>Server Task Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h2>🖥 Server Task Manager</h2>
+<h1>🖥 Server Task Manager</h1>
 
-  <div>CPU Usage <span id="cpuAlert" class="alert"></span></div>
-  <div class="bar"><div class="fill cpu" id="cpu">0%</div></div>
+<div id="stats">
+CPU: <span id="cpu">0</span>% |
+RAM: <span id="ram">0</span>% |
+Disk: <span id="disk">0</span>%
+</div>
 
-  <div>RAM Usage <span id="ramAlert" class="alert"></span></div>
-  <div class="bar"><div class="fill ram" id="ram">0%</div></div>
+<div id="alert-box"></div>
 
-  <div>Disk Usage</div>
-  <div class="bar"><div class="fill disk" id="disk">0%</div></div>
-
-  <canvas id="cpuChart" style="width:100%;max-width:600px;height:200px;margin-top:30px;"></canvas>
-
-  <h3>Running Applications</h3>
-  <table>
+<table id="proc-table">
     <thead>
-      <tr>
-        <th>PID</th>
-        <th>App Name</th>
-        <th>CPU %</th>
-        <th>RAM %</th>
-        <th>Action</th>
-      </tr>
+        <tr>
+            <th>PID</th>
+            <th>App Name</th>
+            <th>CPU %</th>
+            <th>RAM %</th>
+            <th>Action</th>
+        </tr>
     </thead>
-    <tbody id="plist"></tbody>
-  </table>
+    <tbody></tbody>
+</table>
 
-  <script>
-    const cpuFill = document.getElementById('cpu');
-    const ramFill = document.getElementById('ram');
-    const diskFill = document.getElementById('disk');
-    const cpuAlert = document.getElementById('cpuAlert');
-    const ramAlert = document.getElementById('ramAlert');
-
-    const ctx = document.getElementById('cpuChart').getContext('2d');
-    const cpuData = {labels: [], datasets: [{label: 'CPU %', data: [], borderColor: 'yellow', backgroundColor: 'rgba(255,255,0,0.2)', fill: true} ]};
-    const cpuChart = new Chart(ctx, {type:'line', data:cpuData, options:{animation:false, responsive:true, scales:{y:{min:0,max:100}}}});
-
-    function loadStatus(){
-      fetch('/api/status')
-        .then(r => r.json())
-        .then(d => {
-          cpuFill.style.width = d.cpu + '%'; cpuFill.innerText = d.cpu + '%';
-          ramFill.style.width = d.ram + '%'; ramFill.innerText = d.ram + '%';
-          diskFill.style.width = d.disk + '%'; diskFill.innerText = d.disk + '%';
-
-          cpuAlert.innerText = d.cpu > 80 ? '⚠ High CPU!' : '';
-          ramAlert.innerText = d.ram > 80 ? '⚠ High RAM!' : '';
-
-          const now = new Date().toLocaleTimeString();
-          cpuData.labels.push(now);
-          cpuData.datasets[0].data.push(d.cpu);
-          if(cpuData.labels.length>20){cpuData.labels.shift(); cpuData.datasets[0].data.shift();}
-          cpuChart.update();
-        });
-    }
-
-    function loadProcesses(){
-      fetch('/api/processes')
-        .then(r=>r.json())
-        .then(data=>{
-          const t = document.getElementById('plist');
-          t.innerHTML='';
-          data.forEach(p=>{
-            t.innerHTML += `
-              <tr>
-                <td>${p.pid}</td>
-                <td>${p.name}</td>
-                <td>${p.cpu_percent}</td>
-                <td>${p.memory_percent.toFixed(1)}</td>
-                <td>
-                  <button onclick="kill(${p.pid})">End Task</button>
-                </td>
-              </tr>`;
-          });
-        });
-    }
-
-    function kill(pid){
-      fetch('/api/kill/'+pid,{method:'POST'})
-        .then(()=>loadProcesses());
-    }
-
-    setInterval(loadStatus, 2000);
-    setInterval(loadProcesses, 3000);
-  </script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
+
 
