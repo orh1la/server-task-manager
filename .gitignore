@@ -2,3 +2,8 @@
 build/
 dist/
 venv/
+venv/
+build/
+dist/
+*.pkg
+__pycache__/
